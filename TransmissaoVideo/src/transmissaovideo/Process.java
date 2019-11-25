@@ -5,85 +5,51 @@
  */
 package transmissaovideo;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import javax.swing.JFileChooser;
 
 /**
  *
  * @author alexh
  */
-public class Process {
+public class Process{
     
     private static Map<Character, String> charPrefixHashMap = new HashMap<>();
-    static HuffmanNode root;
+    public HuffmanNode root;
 
-    public void LoadFile() {
-                InputStream inputstream;
-                File selectedFile = null;
+    public String DecodeFile(String obj) {
+               
                 long start,finish;
+                StringBuilder saida = null;
+                //start = System.currentTimeMillis();
                 
-                start = System.currentTimeMillis();
-                
-                try{
-                    JFileChooser fileChooser = new JFileChooser();
-                    fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-                    int result;
-                    result = fileChooser.showOpenDialog(null);
-
-                    if (result == JFileChooser.APPROVE_OPTION) {
-                        selectedFile = fileChooser.getSelectedFile();
-                        System.out.println("Selected file: " + selectedFile.getAbsolutePath());
-                    }
-
-                    inputstream = new FileInputStream(selectedFile);
-                    String aData = "" ;
-
-                    int data = inputstream.read();
-                    
-                    while (data != -1) {
-                           aData = aData + (char)data;
-                           data = inputstream.read();
-                    }        
-                    finish = System.currentTimeMillis();
-
-                    System.out.println("Leitura realizada em: " + Long.toString(finish - start));
-                    inputstream.close();
-                    
-                    //------------------     
+                try{        
                     
                     start = System.currentTimeMillis();
-                    System.out.println("Tamanho original = "+ aData.length());  
+                    System.out.println("Tamanho comprimido = "+ obj.length());  
                   
-                    String test = encode(aData);  
-                    System.out.println("Tamanho comprimido: " + test.length());
-                    StringBuilder saida = decode(test); 
+                    //String test = encode(obj);  
+                   
+                    saida = decode(obj); 
                     
-                    System.out.println("Tamanho depois da compressao = "+saida.toString().length());  
-                                                                                             
+                    System.out.println("Tamanho descomprimido: " + saida.length());
+                                                                                  
                     finish = System.currentTimeMillis();
                     //---------------------
                     System.out.println("Time: " + Long.toString(finish - start));
                 }
-         catch (FileNotFoundException e1) {
-               // TODO Auto-generated catch block
-               e1.printStackTrace();
-        } catch (IOException e) {
+
+        catch (Exception e) {
                // TODO Auto-generated catch block
                e.printStackTrace();
         }
+                
+        return saida.toString();
 }
 
-    private static HuffmanNode buildTree(Map<Character, Integer> freq) {
+    private HuffmanNode buildTree(Map<Character, Integer> freq) {
 
                     PriorityQueue<HuffmanNode> priorityQueue = new PriorityQueue<>();
                     Set<Character> keySet = freq.keySet();
@@ -122,7 +88,7 @@ public class Process {
                     return priorityQueue.poll();
             }
 
-    private static void setPrefixCodes(HuffmanNode node, StringBuilder prefix) {
+    private  void setPrefixCodes(HuffmanNode node, StringBuilder prefix) {
 
                     if (node != null) {
                             if (node.left == null && node.right == null) {
@@ -141,7 +107,7 @@ public class Process {
 
             }
 
-    private static String encode(String test) {
+    public String encode(String test) {
                     Map<Character, Integer> freq = new HashMap<>();
                     for (int i = 0; i < test.length(); i++) {
                             if (!freq.containsKey(test.charAt(i))) {
@@ -170,8 +136,6 @@ public class Process {
                     StringBuilder stringBuilder = new StringBuilder();
 
                     HuffmanNode temp = root;
-
-                    //System.out.println("Encoded: " + s);
 
                     for (int i = 0; i < s.length(); i++) {
                             int j = Integer.parseInt(String.valueOf(s.charAt(i)));
