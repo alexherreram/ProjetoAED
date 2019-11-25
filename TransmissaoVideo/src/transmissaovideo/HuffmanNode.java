@@ -9,7 +9,7 @@ package transmissaovideo;
  *
  * @author alexh
  */
- class HuffmanNode implements Comparable<HuffmanNode> {
+ class HuffmanNode implements Comparable<HuffmanNode>, java.io.Serializable {
     int frequency;
     char data;
     HuffmanNode left;
