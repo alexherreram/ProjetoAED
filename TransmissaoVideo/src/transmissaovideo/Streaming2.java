@@ -156,6 +156,7 @@ public class Streaming2 extends JFrame {
                                         aData.add(data);                  
                                         porcentagem = (float)(aData.toString().length() * 100) / (float)totalBytes; 
                                         progressBar.setValue((int)porcentagem); 
+                                        
                                     }
                                 }
                               }
