@@ -29,6 +29,7 @@ import javax.swing.Timer;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JTextArea;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
@@ -41,6 +42,7 @@ public class Streaming2 extends JFrame {
     private JButton btnIniciar;
     private JButton btnProcessa;
     private File selectedFile;
+    private JTextArea txtSize;
     /**
      * Launch the application.
      */
@@ -69,9 +71,11 @@ public class Streaming2 extends JFrame {
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
-        setContentPane(contentPane);
-        contentPane.add(getProgressBar(), BorderLayout.NORTH);
+        setContentPane(contentPane);   
+        txtSize = new JTextArea();
+        contentPane.add(txtSize);
         contentPane.add(getPanel(), BorderLayout.SOUTH);
+        contentPane.add(getProgressBar(), BorderLayout.NORTH);
     }
 
     private JProgressBar getProgressBar() {
@@ -119,10 +123,23 @@ public class Streaming2 extends JFrame {
                 try
                 {
                     if (result == JFileChooser.APPROVE_OPTION) {
+                        //limpa o campo de texto
+                        txtSize.selectAll();
+                        txtSize.replaceSelection("");
+                        
+                        //Arquivo selecionado pelo user
                         selectedFile = fileChooser.getSelectedFile();
-                        System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+                        
+                        txtSize.append("Selected file: " + selectedFile.getAbsolutePath());
+                        
+                        //Cria buffer do arquivo
                         inputstream = new BufferedReader(new FileReader(selectedFile));
                         totalBytes = selectedFile.length();
+                        
+                        txtSize.append("\n");
+                        txtSize.append("Tamanho do arquivo: " + Long.toString(totalBytes));                        
+                        
+                        //Restart nas propriedades
                         aData = new ArrayList<String>();   
                         progressBar.setValue(0); 
                         parada = false;
@@ -174,12 +191,14 @@ public class Streaming2 extends JFrame {
                             Requisicao req = new Requisicao(); 
                             Process p = new Process();
                             try{
-                            //System.out.println("Leitura realizada em: " + Long.toString(finish - start));
-                            //inputstream.close();
 
-                            System.out.println("Tamanho Original: " + aData.toString().length() * 8);
-                            //------------------     
+                            //------------------   
+                            long start = System.currentTimeMillis();
                             String conteudo = p.encode(aData.toString());  
+                            long finish = System.currentTimeMillis();
+                            
+                            txtSize.append("\n");
+                            txtSize.append("Compressão realizada em: " + Long.toString(finish - start));
 
                             req.setData(conteudo);
                             req.setObject(p.root);

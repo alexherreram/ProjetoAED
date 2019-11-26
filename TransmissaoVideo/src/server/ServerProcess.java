@@ -168,15 +168,13 @@ public class ServerProcess extends javax.swing.JFrame {
                 // recebendo a requisição
                 Requisicao req = (Requisicao)in.readObject(); // receive
                 
-                //Resposta rep = new Resposta(); // objeto que irá conter a resposta
-                
+
                 // processa
                 transmissaovideo.Process h = new transmissaovideo.Process();
                 
                 h.root = req.getObj();
                 
                 long start = System.currentTimeMillis();
-                //frame.changeLog("Tamanho comprimido = "+ req.getData().length());  
                 
                 frame.changeLog("Tamanho comprimido: " + req.getData().length()/8);
                 
@@ -186,7 +184,7 @@ public class ServerProcess extends javax.swing.JFrame {
 
                 long finish = System.currentTimeMillis();
                 //---------------------
-                //frame.changeLog("Time: " + Long.toString(finish - start));
+                frame.changeLog("Time: " + Long.toString(finish - start));
           
                 // envia resposta
                 //out.writeObject(rep);
