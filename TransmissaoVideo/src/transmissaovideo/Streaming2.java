@@ -81,6 +81,7 @@ public class Streaming2 extends JFrame {
         }
         return progressBar;
     }
+    
     public static Socket Inicia_secao(){
         Socket retorno = null;
         try{
@@ -95,6 +96,7 @@ public class Streaming2 extends JFrame {
     } 
     return retorno;
 }
+    
     private JPanel getPanel() {
         if (panel == null) {
             panel = new JPanel();
@@ -122,6 +124,9 @@ public class Streaming2 extends JFrame {
                         inputstream = new BufferedReader(new FileReader(selectedFile));
                         totalBytes = selectedFile.length();
                         aData = new ArrayList<String>();   
+                        progressBar.setValue(0); 
+                        parada = false;
+                        btnIniciar.setEnabled(true);
                     }
                 }
                 catch (Exception ex){}
@@ -130,13 +135,10 @@ public class Streaming2 extends JFrame {
         return btnProcessa;
     }
     private JButton getBtnIniciar() {
-
+        btnIniciar = new JButton("Iniciar");
         try
-        {
-    
-        if (btnIniciar == null) {
-            btnIniciar = new JButton("Iniciar");
-            btnIniciar.addActionListener(new ActionListener() {
+        {                  
+        btnIniciar.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     btnIniciar.setEnabled(false);
                     porcentagem = 0;
@@ -151,9 +153,11 @@ public class Streaming2 extends JFrame {
                                         parada = true;
                                         progressBar.setValue(100); 
                                         SendContent();
+                                        btnIniciar.setEnabled(false);
+                                        timer.stop();
                                     }
                                     else{
-                                        aData.add(data);                  
+                                        aData.add(data); 
                                         porcentagem = (float)(aData.toString().length() * 100) / (float)totalBytes; 
                                         progressBar.setValue((int)porcentagem); 
                                         
@@ -171,9 +175,9 @@ public class Streaming2 extends JFrame {
                             Process p = new Process();
                             try{
                             //System.out.println("Leitura realizada em: " + Long.toString(finish - start));
-                            inputstream.close();
+                            //inputstream.close();
 
-                            System.out.println("Tamanho Original: " + aData.toString().length());
+                            System.out.println("Tamanho Original: " + aData.toString().length() * 8);
                             //------------------     
                             String conteudo = p.encode(aData.toString());  
 
@@ -191,15 +195,11 @@ public class Streaming2 extends JFrame {
                 }
             });
         }
-        
-        }
         catch(Exception ex){}
         
         return btnIniciar;
     }
-    
-    
-    
+
     private static BufferedReader inputstream = null; 
     private String data;
     private static boolean parada = false;

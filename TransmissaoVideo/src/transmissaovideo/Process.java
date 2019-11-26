@@ -14,7 +14,7 @@ import java.util.Set;
  *
  * @author alexh
  */
-public class Process{
+public class Process {
     
     private static Map<Character, String> charPrefixHashMap = new HashMap<>();
     public HuffmanNode root;
@@ -23,22 +23,13 @@ public class Process{
                
                 long start,finish;
                 StringBuilder saida = null;
-                //start = System.currentTimeMillis();
-                
                 try{        
-                    
                     start = System.currentTimeMillis();
-                    System.out.println("Tamanho comprimido = "+ obj.length());  
-                  
-                    //String test = encode(obj);  
-                   
+
                     saida = decode(obj); 
-                    
-                    System.out.println("Tamanho descomprimido: " + saida.length());
-                                                                                  
+                                                                  
                     finish = System.currentTimeMillis();
-                    //---------------------
-                    System.out.println("Time: " + Long.toString(finish - start));
+
                 }
 
         catch (Exception e) {
