@@ -145,8 +145,8 @@ public class ServerProcess extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(ServerProcess.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-         ServerProcess frame = new ServerProcess();
-                
+        ServerProcess frame = new ServerProcess();
+        long cont = 0;      
         try
         {
             
@@ -176,15 +176,17 @@ public class ServerProcess extends javax.swing.JFrame {
                 h.root = req.getObj();
                 
                 long start = System.currentTimeMillis();
-                frame.changeLog("Tamanho comprimido = "+ req.getData().length());  
-
+                //frame.changeLog("Tamanho comprimido = "+ req.getData().length());  
+                
+                frame.changeLog("Tamanho comprimido: " + req.getData().length()/8);
+                
                 String exibition = h.DecodeFile(req.getData());
-
-                frame.changeLog("Tamanho descomprimido: " + exibition.length());
+                 
+                frame.changeLog("Tamanho descomprimido: " + (long)exibition.length());
 
                 long finish = System.currentTimeMillis();
                 //---------------------
-                frame.changeLog("Time: " + Long.toString(finish - start));
+                //frame.changeLog("Time: " + Long.toString(finish - start));
           
                 // envia resposta
                 //out.writeObject(rep);
@@ -196,7 +198,7 @@ public class ServerProcess extends javax.swing.JFrame {
         }
         catch(Exception ex)
         {
-            System.err.println("Deu ruim no servidor...");
+            frame.txtLog.setText(ex.getMessage());
             ex.printStackTrace();
         }
     
