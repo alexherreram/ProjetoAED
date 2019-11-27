@@ -5,10 +5,14 @@
  */
 package transmissaovideo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import lzw.Compress;
+import lzw.Decompress;
 
 /**
  *
@@ -40,6 +44,21 @@ public class Process {
         return saida.toString();
 }
 
+    public String DecodeFileLZ(List<Integer> obj) {
+        String decompressed = "";
+        
+        try
+        {
+            decompressed = Decompress.decomp(obj);            
+        }
+        catch (Exception e) {
+               // TODO Auto-generated catch block
+               e.printStackTrace();
+        }
+                
+        return decompressed;
+}
+    
     private HuffmanNode buildTree(Map<Character, Integer> freq) {
 
                     PriorityQueue<HuffmanNode> priorityQueue = new PriorityQueue<>();
@@ -121,6 +140,67 @@ public class Process {
 
                     return s.toString();
             }
+    
+    public static List<Integer> encodeLz(String uncompressed){
+        // Build the dictionary.
+        int dictSize = 256;
+        Map<String,Integer> dictionary = new HashMap<String,Integer>();
+        for (int i = 0; i < 256; i++)
+            dictionary.put("" + (char)i, i);
+ 
+        String w = "";
+        List<Integer> result = new ArrayList<Integer>();
+        for (char c : uncompressed.toCharArray()) {
+            String wc = w + c;
+            if (dictionary.containsKey(wc))
+                w = wc;
+            else {
+                result.add(dictionary.get(w));
+                // Add wc to the dictionary.
+                dictionary.put(wc, dictSize++);
+                w = "" + c;
+            }
+        }
+ 
+        // Output the code for w.
+        if (!w.equals(""))
+            result.add(dictionary.get(w));
+        return result;
+    }
+    
+    public static String decodeLz(List<Integer> compressed){
+             // Build the dictionary.
+        int dictSize = 256;
+        Map<Integer,String> dictionary = new HashMap<Integer,String>();
+        for (int i = 0; i < 256; i++)
+            dictionary.put(i, "" + (char)i);
+ 
+        String w = "" + (char)(int)compressed.remove(0);
+        StringBuffer result = new StringBuffer(w);
+        try{
+        for (int k : compressed) {
+            String entry;           
+            
+            if (dictionary.containsKey(k))
+                entry = dictionary.get(k);
+            else if (k == dictSize)
+                entry = w + w.charAt(0);
+            else
+                throw new IllegalArgumentException("Bad compressed k: " + k);
+            
+            result.append(entry);
+ 
+            // Add w+entry[0] to the dictionary.
+            dictionary.put(dictSize++, w + entry.charAt(0));
+ 
+            w = entry;
+        }
+        }
+        catch (Exception ex){
+          return "";
+        }
+        return result.toString();
+     }
 
     private StringBuilder decode(String s) {
 
@@ -149,4 +229,6 @@ public class Process {
 
         return stringBuilder;
         }
+    
+   
 }

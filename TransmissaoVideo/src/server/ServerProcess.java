@@ -10,6 +10,12 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketImpl;
+import static java.nio.file.Files.list;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import javafx.beans.value.ChangeListener;
 import javax.swing.ProgressMonitor;
 import transmissaovideo.Requisicao;
@@ -146,7 +152,7 @@ public class ServerProcess extends javax.swing.JFrame {
         }
         //</editor-fold>
         ServerProcess frame = new ServerProcess();
-        long cont = 0;      
+    
         try
         {
             
@@ -168,7 +174,6 @@ public class ServerProcess extends javax.swing.JFrame {
                 // recebendo a requisição
                 Requisicao req = (Requisicao)in.readObject(); // receive
                 
-                //Resposta rep = new Resposta(); // objeto que irá conter a resposta
                 
                 // processa
                 transmissaovideo.Process h = new transmissaovideo.Process();
@@ -176,17 +181,28 @@ public class ServerProcess extends javax.swing.JFrame {
                 h.root = req.getObj();
                 
                 long start = System.currentTimeMillis();
-                //frame.changeLog("Tamanho comprimido = "+ req.getData().length());  
                 
-                frame.changeLog("Tamanho comprimido: " + req.getData().length()/8);
+               
+                String exibition = "";
                 
-                String exibition = h.DecodeFile(req.getData());
-                 
-                frame.changeLog("Tamanho descomprimido: " + (long)exibition.length());
+                switch (req.getAlgoritmo()){
+                    case "LZ":                        
+                        List<Integer> f = (List<Integer>)req.getData();                                                
+                        frame.changeLog("Tamanho comprimido: " + f.size());
+                        exibition = h.DecodeFileLZ((List<Integer>)req.getData());
+                        break;
+                    case "Huffman":
+                        String str = req.getData().toString();
+                                                                   
+                        frame.changeLog("Tamanho comprimido: " + str.length() / 8);
+                        exibition = h.DecodeFile((String)req.getData());                    
+                        break;
+                }
+                frame.changeLog("Tamanho descomprimido: " + exibition.length());
 
                 long finish = System.currentTimeMillis();
                 //---------------------
-                //frame.changeLog("Time: " + Long.toString(finish - start));
+                frame.changeLog("Time: " + Long.toString(finish - start));
           
                 // envia resposta
                 //out.writeObject(rep);
@@ -218,6 +234,7 @@ public class ServerProcess extends javax.swing.JFrame {
         txtLog.append("\n");
         txtLog.append(t);
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
