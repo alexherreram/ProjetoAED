@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Timer;
@@ -29,9 +30,11 @@ import javax.swing.Timer;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JTextArea;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
+import lzw.Compress;
 
 public class Streaming2 extends JFrame {
 
@@ -39,8 +42,10 @@ public class Streaming2 extends JFrame {
     private JProgressBar progressBar;
     private JPanel panel;
     private JButton btnIniciar;
+    private JButton btnIniciarLZ;
     private JButton btnProcessa;
     private File selectedFile;
+    private JTextArea txtSize;
     /**
      * Launch the application.
      */
@@ -69,9 +74,11 @@ public class Streaming2 extends JFrame {
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
-        setContentPane(contentPane);
-        contentPane.add(getProgressBar(), BorderLayout.NORTH);
+        setContentPane(contentPane);   
+        txtSize = new JTextArea();
+        contentPane.add(txtSize);
         contentPane.add(getPanel(), BorderLayout.SOUTH);
+        contentPane.add(getProgressBar(), BorderLayout.NORTH);
     }
 
     private JProgressBar getProgressBar() {
@@ -101,6 +108,7 @@ public class Streaming2 extends JFrame {
         if (panel == null) {
             panel = new JPanel();
             panel.add(getBtnIniciar());
+            panel.add(getBtnIniciarLZ());
             panel.add(Processa());
         }
         return panel;
@@ -119,14 +127,29 @@ public class Streaming2 extends JFrame {
                 try
                 {
                     if (result == JFileChooser.APPROVE_OPTION) {
+                        //limpa o campo de texto
+                        txtSize.selectAll();
+                        txtSize.replaceSelection("");
+                        
+                        //Arquivo selecionado pelo user
                         selectedFile = fileChooser.getSelectedFile();
-                        System.out.println("Selected file: " + selectedFile.getAbsolutePath());
-                        inputstream = new BufferedReader(new FileReader(selectedFile));
+                        
+                        txtSize.append("Selected file: " + selectedFile.getAbsolutePath());
+                        
+                        //Cria buffer do arquivo
+                        inputstream = new FileInputStream(selectedFile);
                         totalBytes = selectedFile.length();
-                        aData = new ArrayList<String>();   
+                        
+                        txtSize.append("\n");
+                        txtSize.append("Tamanho do arquivo: " + Long.toString(totalBytes));                        
+                        
+                        //Restart nas propriedades
+                        aData = "";  
+                        iaData = "";  
                         progressBar.setValue(0); 
                         parada = false;
                         btnIniciar.setEnabled(true);
+                        btnIniciarLZ.setEnabled(true);
                     }
                 }
                 catch (Exception ex){}
@@ -135,7 +158,7 @@ public class Streaming2 extends JFrame {
         return btnProcessa;
     }
     private JButton getBtnIniciar() {
-        btnIniciar = new JButton("Iniciar");
+        btnIniciar = new JButton("Iniciar Huffman");
         try
         {                  
         btnIniciar.addActionListener(new ActionListener() {
@@ -147,18 +170,21 @@ public class Streaming2 extends JFrame {
                         public void actionPerformed(ActionEvent e)  {                                
                               try{  
                                 if (parada == false) {
-                                    data = inputstream.readLine();
+                                    idata = inputstream.read();
+                                    //String content = new String(Files.readAllBytes(selectedFile.toPath()));
+                                    //int t = content.length();
                                     
-                                    if (data == null ){
+                                    if (idata == -1 ){                                       
                                         parada = true;
                                         progressBar.setValue(100); 
                                         SendContent();
                                         btnIniciar.setEnabled(false);
+                                        btnIniciarLZ.setEnabled(false);
                                         timer.stop();
                                     }
                                     else{
-                                        aData.add(data); 
-                                        porcentagem = (float)(aData.toString().length() * 100) / (float)totalBytes; 
+                                        iaData =  iaData + (char)idata;
+                                        porcentagem = (float)(iaData.toString().length() * 100) / (float)totalBytes; 
                                         progressBar.setValue((int)porcentagem); 
                                         
                                     }
@@ -174,19 +200,23 @@ public class Streaming2 extends JFrame {
                             Requisicao req = new Requisicao(); 
                             Process p = new Process();
                             try{
-                            //System.out.println("Leitura realizada em: " + Long.toString(finish - start));
-                            //inputstream.close();
 
-                            System.out.println("Tamanho Original: " + aData.toString().length() * 8);
-                            //------------------     
-                            String conteudo = p.encode(aData.toString());  
+                            //------------------   
+                            long start = System.currentTimeMillis();
+                            String conteudo = p.encode(iaData);  
+                            long finish = System.currentTimeMillis();
+                            
+                            txtSize.append("\n");
+                            txtSize.append("Compressão realizada em: " + Long.toString(finish - start));
 
+                            req.setAlgoritmo("Huffman");
                             req.setData(conteudo);
                             req.setObject(p.root);
 
                             ObjectOutputStream out = new ObjectOutputStream(retorno.getOutputStream());
                             out.writeObject(req); // equivalente ao SEND
                             btnIniciar.setEnabled(true);
+                            btnIniciarLZ.setEnabled(true);
                             }
                             catch(Exception ex){}
                         }
@@ -199,12 +229,85 @@ public class Streaming2 extends JFrame {
         
         return btnIniciar;
     }
+    
+    private JButton getBtnIniciarLZ() {
+        btnIniciarLZ = new JButton("Iniciar LZ");
+        try
+        {                  
+        btnIniciarLZ.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    btnIniciarLZ.setEnabled(false);
+                    porcentagem = 0;
+                    timer = new Timer(0, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e)  {                                
+                              try{  
+                                if (parada == false) {
+                                    idata = inputstream.read();
+                                    //String content = new String(Files.readAllBytes(selectedFile.toPath()));
+                                    //int t = content.length();
+                                    
+                                    if (idata == -1 ){                                       
+                                        parada = true;
+                                        progressBar.setValue(100); 
+                                        SendContentLZ();
+                                        btnIniciarLZ.setEnabled(false);
+                                        btnIniciar.setEnabled(false);
+                                        timer.stop();
+                                    }
+                                    else{
+                                        iaData = iaData + (char)idata; 
+                                        porcentagem = (float)(iaData.length() * 100) / (float)totalBytes; 
+                                        progressBar.setValue((int)porcentagem); 
+                                        
+                                    }
+                                }
+                              }
+                              catch(Exception ex){
+                                  System.out.printf(ex.getMessage());
+                              }
+                        }                        
 
-    private static BufferedReader inputstream = null; 
+                        private void SendContentLZ() {
+                            Socket retorno = Inicia_secao();
+                            Requisicao req = new Requisicao(); 
+                            Process p = new Process();
+                            try{
+
+                                //------------------   
+                                long start = System.currentTimeMillis();
+                                
+                                List<Integer> conteudo = Compress.comp(iaData);  
+                                long finish = System.currentTimeMillis();
+             
+                                txtSize.append("\n");
+                                txtSize.append("Compressão realizada em: " + Long.toString(finish - start));
+
+                                req.setAlgoritmo("LZ");
+                                req.setData(conteudo);                           
+
+                                ObjectOutputStream out = new ObjectOutputStream(retorno.getOutputStream());
+                                out.writeObject(req); // equivalente ao SEND
+                                btnIniciarLZ.setEnabled(true);
+                            }
+                            catch(Exception ex){}
+                        }
+                    });
+                    timer.start();
+                }
+            });
+        }
+        catch(Exception ex){}
+        
+        return btnIniciarLZ;
+    }
+    private static FileInputStream inputstream = null; 
     private String data;
+    private int idata;
     private static boolean parada = false;
     private long totalBytes;    
-    private static List<String> aData ;
+    private static String aData ;
+    private static String iaData ;
     private Timer timer;
     private float porcentagem;
 }
